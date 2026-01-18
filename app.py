@@ -1,35 +1,26 @@
 import streamlit as st
 import google.generativeai as genai
 
-# 1. 페이지 설정
-st.set_page_config(page_title="나만의 AI 챗봇", page_icon="🤖")
+st.title("🔎 모델 이름 찾기")
 
-# 2. API 키 설정 (Streamlit Secrets에서 가져옴)
-# 주의: 배포 시 Secrets에 GOOGLE_API_KEY를 등록해야 함
+# 1. API 키 설정
 try:
     genai.configure(api_key=st.secrets["GOOGLE_API_KEY"])
-except:
-    st.error("API 키가 설정되지 않았습니다.")
-
-# 3. 화면 디자인
-st.title("🤖 무엇이든 물어보세요")
-st.caption("Google Gemini 기반 AI입니다.")
-
-# 4. 챗봇 로직
-if "messages" not in st.session_state:
-    st.session_state["messages"] = [{"role": "assistant", "content": "안녕하세요! 무엇을 도와드릴까요?"}]
-
-for msg in st.session_state.messages:
-    st.chat_message(msg["role"]).write(msg["content"])
-
-if prompt := st.chat_input():
-    st.session_state.messages.append({"role": "user", "content": prompt})
-    st.chat_message("user").write(prompt)
     
-    # AI 응답 생성
-    model = genai.GenerativeModel("gemini-pro") # 모델명
-    response = model.generate_content(prompt)
-    msg = response.text
+    st.write("내 키로 사용 가능한 모델 목록을 조회합니다...")
     
-    st.session_state.messages.append({"role": "assistant", "content": msg})
-    st.chat_message("assistant").write(msg)
+    # 2. 구글 서버에 있는 모델 목록을 다 가져옵니다
+    models = genai.list_models()
+    
+    found_any = False
+    for m in models:
+        # 'generateContent' 기능이 있는 모델만 보여줍니다
+        if 'generateContent' in m.supported_generation_methods:
+            st.success(f"사용 가능 👉 {m.name}")
+            found_any = True
+            
+    if not found_any:
+        st.error("❌ 사용 가능한 모델이 하나도 검색되지 않습니다. API 키를 새로 발급받아야 할 수도 있습니다.")
+        
+except Exception as e:
+    st.error(f"오류 발생: {e}")
