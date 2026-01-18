@@ -27,7 +27,7 @@ if prompt := st.chat_input():
     st.chat_message("user").write(prompt)
     
     # AI 응답 생성
-    model = genai.GenerativeModel("gemini-1.5-flash") # 모델명
+    model = genai.GenerativeModel("gemini-pro") # 모델명
     response = model.generate_content(prompt)
     msg = response.text
     
